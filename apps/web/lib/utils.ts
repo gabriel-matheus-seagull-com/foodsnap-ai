@@ -1,0 +1,12 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+/** Merge conditional class names and dedupe conflicting Tailwind classes. */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+/** Stable-ish id generator for client-side food item rows. */
+export function makeId(prefix = "food"): string {
+  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+}
