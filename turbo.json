@@ -1,6 +1,14 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "AI_PROVIDER",
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_MODEL",
+    "GEMINI_API_KEY",
+    "GEMINI_MODEL",
+    "GOOGLE_API_KEY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -12,6 +20,9 @@
     },
     "check-types": {
       "dependsOn": ["^check-types"]
+    },
+    "test": {
+      "dependsOn": []
     },
     "dev": {
       "cache": false,

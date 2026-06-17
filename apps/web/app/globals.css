@@ -1,50 +1,72 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 96 30% 98%;
+    --foreground: 150 18% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 18% 12%;
+
+    --primary: 152 56% 33%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 150 24% 94%;
+    --secondary-foreground: 152 40% 20%;
+
+    --muted: 150 16% 95%;
+    --muted-foreground: 150 8% 42%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 30 40% 15%;
+
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 14% 88%;
+    --input: 150 14% 88%;
+    --ring: 152 56% 33%;
+
+    /* Macro colors */
+    --protein: 222 78% 56%;
+    --carbs: 38 92% 50%;
+    --fat: 280 60% 58%;
+
+    --radius: 0.85rem;
+  }
+
+  .dark {
+    --background: 150 18% 8%;
+    --foreground: 150 10% 94%;
+    --card: 150 16% 11%;
+    --card-foreground: 150 10% 94%;
+    --primary: 152 52% 45%;
+    --primary-foreground: 150 30% 8%;
+    --secondary: 150 12% 18%;
+    --secondary-foreground: 150 10% 94%;
+    --muted: 150 12% 16%;
+    --muted-foreground: 150 8% 62%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 30 40% 12%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 10% 22%;
+    --input: 150 10% 22%;
+    --ring: 152 52% 45%;
+    --protein: 222 70% 64%;
+    --carbs: 38 92% 58%;
+    --fat: 280 55% 66%;
   }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.imgDark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@layer base {
+  * {
+    @apply border-border;
   }
-
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

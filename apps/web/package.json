@@ -8,13 +8,21 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit"
+    "check-types": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.2",
     "@repo/ui": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.20.0",
     "next": "16.2.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -22,7 +30,11 @@
     "@types/node": "^22.15.3",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
+    "autoprefixer": "^10.5.0",
     "eslint": "^9.39.1",
-    "typescript": "5.9.2"
+    "postcss": "^8.5.15",
+    "tailwindcss": "^3.4.17",
+    "typescript": "5.9.2",
+    "vitest": "^4.1.9"
   }
 }
