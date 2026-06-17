@@ -1,159 +1,155 @@
-# Turborepo starter
+# 🥗 FoodSnap AI
 
-This Turborepo starter is maintained by the Turborepo core team.
+**Snap your meal. Get a smart nutrition estimate.**
 
-## Using this example
+Upload a photo of a meal and FoodSnap AI identifies the likely foods, estimates
+portion sizes, and returns an approximate **calorie range** plus **protein,
+carbs, and fats** — with a clear, friendly reminder that the numbers are
+estimates for general awareness, not medical or nutrition advice.
 
-Run the following command:
+> This is an MVP built on a Turborepo + Next.js scaffold. The app lives in
+> `apps/web`.
 
-```sh
-npx create-turbo@latest
+---
+
+## ✨ Features
+
+- **Upload or drag-and-drop** a meal photo (auto-downscaled in the browser for fast, small uploads).
+- **AI food detection** via any image-capable model — **Anthropic Claude or Google Gemini**, chosen from env — identifies foods and estimates portions.
+- **Editable review step** — confirm, rename, re-portion, remove, or add foods before the final estimate.
+- **Visual results** — calorie range, macro breakdown with energy-share bars, and a per-item breakdown.
+- **Confidence + uncertainty notes** throughout; ranges instead of fake precision when confidence is low.
+- **Graceful states** — loading, empty ("not food"), invalid upload, and analysis-failure handling.
+- **Works with no API key** — runs in an offline **demo/mock mode** so you can try the whole flow instantly.
+- **Mobile-first, responsive, clean** UI (Tailwind + lightweight shadcn-style components).
+
+---
+
+## 🏗️ Architecture
+
+Clean separation of concerns between UI, AI, and nutrition logic:
+
+```
+apps/web/
+├─ app/
+│  ├─ page.tsx                 # Landing page
+│  ├─ analyze/page.tsx         # Flow orchestrator: upload → analyzing → review → results
+│  └─ api/analyze/route.ts     # POST endpoint: validates upload, calls the AI layer
+├─ components/
+│  ├─ ui/                      # shadcn-style primitives (button, card, badge, input, slider…)
+│  └─ foodsnap/                # Feature components (uploader, review, results, macros, disclaimer…)
+└─ lib/
+   ├─ types.ts                 # Shared domain types (the contract between layers)
+   ├─ ai/
+   │  ├─ prompt.ts             # Vision prompt (asks for per-100g nutrition so edits rescale locally)
+   │  ├─ analyze-image.ts      # Orchestration: pick provider → zod validation + mock fallback (+ pure parser)
+   │  └─ providers/            # Provider-agnostic backends: anthropic.ts, gemini.ts; selection in index.ts
+   └─ nutrition/
+      ├─ estimate.ts           # Pure aggregation: totals + confidence-weighted ranges
+      └─ food-defaults.ts      # Small food table for the "add item" control
 ```
 
-## What's inside?
+**Data flow:** the browser downscales the photo → `POST /api/analyze` → the AI
+layer returns `DetectedFood[]` (nutrition stored **per 100 g**) → the review
+step lets the user edit → the **nutrition layer** aggregates totals and builds
+ranges. Because nutrition is per-100g, editing a portion recomputes **locally**
+with no extra AI call.
 
-This Turborepo includes the following packages/apps:
+---
 
-### Apps and Packages
+## 🚀 Getting started
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Prerequisites
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- Node.js >= 18
+- pnpm 9 (`corepack enable` will provide it)
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### Install
 
 ```sh
-cd my-turborepo
-turbo build
+pnpm install
 ```
 
-Without global `turbo`, use your package manager:
+### Configure (optional)
+
+The app **works without any configuration** — with no API key it returns a
+realistic sample meal so you can demo the full flow. The AI layer is
+**provider-agnostic**: add **one** provider's key to enable real photo analysis.
 
 ```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Then edit `apps/web/.env.local` with **either**:
 
 ```sh
-turbo build --filter=docs
+# Option A — Anthropic Claude (https://console.anthropic.com/)
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001   # optional override (default = cheapest tier)
+
+# Option B — Google Gemini (https://aistudio.google.com/apikey)
+GEMINI_API_KEY=...                          # or GOOGLE_API_KEY
+GEMINI_MODEL=gemini-2.5-flash-lite          # optional override (default = cheapest tier)
 ```
 
-Without global `turbo`:
+**Provider selection:** with no `AI_PROVIDER` set, the app auto-detects from
+whichever key is present (Anthropic wins if both are). To force one, set
+`AI_PROVIDER=anthropic`, `AI_PROVIDER=gemini`, or `AI_PROVIDER=mock` (offline
+demo). Switching providers needs **no code change** — just env vars.
+
+### Run
 
 ```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+pnpm dev                              # all apps
+pnpm exec turbo dev --filter=web      # just FoodSnap → http://localhost:3000
 ```
 
-### Develop
+Open <http://localhost:3000>, click **Try it now**, and upload a meal photo.
 
-To develop all apps and packages, run the following command:
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## 🧪 Quality checks
 
 ```sh
-cd my-turborepo
-turbo dev
+pnpm --filter web test          # unit tests (Vitest)
+pnpm --filter web check-types   # next typegen + tsc --noEmit
+pnpm --filter web lint          # eslint (fails on any warning)
+pnpm --filter web build         # production build
 ```
 
-Without global `turbo`, use your package manager:
+### What the tests cover
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+- **Happy path** — detection parsing + nutrition aggregation produce sensible totals and ranges.
+- **Invalid upload** — the API route rejects missing images / unsupported media types (400).
+- **Analysis failure** — unparseable model output throws a clear error.
+- **Empty / uncertain response** — a "not food" result yields an empty list and a low-confidence note.
+- **Low confidence** — ranges widen as confidence drops; the app stays usable.
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## 🤖 How the AI layer works
 
-```sh
-turbo dev --filter=web
-```
+1. A **provider** is resolved from env (`lib/ai/providers`): Anthropic or
+   Gemini, or `null` for offline mock mode. Each provider implements the same
+   tiny `VisionProvider` interface — send image + prompt, return raw text — so
+   adding a backend is one new file plus a line in `index.ts`.
+2. The chosen provider is sent the image with a prompt that asks for each food's
+   **per-100g** calories and macros, an estimated portion in grams, and a
+   per-item confidence. The **parsing/validation is shared across providers**.
+3. The response is parsed defensively (tolerant JSON extraction) and validated
+   with `zod`, with values clamped to sane ranges.
+4. The **nutrition layer** turns the (possibly user-edited) foods into a meal
+   total and builds calorie/macro ranges using a confidence-weighted band —
+   conservative by design.
 
-Without global `turbo`:
+If no provider key is set, or the model/network fails, the app degrades
+gracefully (mock data or a friendly, non-leaky error) rather than breaking the
+flow.
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+---
 
-### Remote Caching
+## ⚠️ Disclaimer
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+FoodSnap AI provides **approximate** estimates for **general nutrition
+awareness only**. It is **not** a substitute for professional medical or
+nutrition advice.
