@@ -126,5 +126,62 @@ export function createGeminiProvider(): VisionProvider {
 
       return text;
     },
+    async generateChatText({ systemPrompt, userInstruction }) {
+      const url = `${GEMINI_API_BASE}/models/${encodeURIComponent(
+        model,
+      )}:generateContent`;
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [
+            { role: "user", parts: [{ text: userInstruction }] },
+          ],
+          generationConfig: {
+            maxOutputTokens: 500,
+            temperature: 0.3,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const detail = await extractErrorMessage(res);
+        throw new Error(
+          `Gemini request failed (${res.status})${detail ? `: ${detail}` : ""}.`,
+        );
+      }
+
+      const data = (await res.json()) as GeminiResponse;
+
+      if (data.promptFeedback?.blockReason) {
+        throw new Error("The AI declined to respond.");
+      }
+
+      const candidate = data.candidates?.[0];
+      const finishReason = candidate?.finishReason;
+      if (
+        finishReason &&
+        finishReason !== "STOP" &&
+        finishReason !== "MAX_TOKENS"
+      ) {
+        throw new Error("The AI declined to respond.");
+      }
+
+      const text = (candidate?.content?.parts ?? [])
+        .map((part) => part.text ?? "")
+        .join("")
+        .trim();
+
+      if (!text) {
+        throw new Error("The AI returned an empty response.");
+      }
+
+      return text;
+    },
   };
 }
