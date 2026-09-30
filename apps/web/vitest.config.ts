@@ -5,8 +5,14 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   resolve: {
-    // Mirror the "@/*" -> "./*" path alias from tsconfig.json.
-    alias: [{ find: /^@\//, replacement: `${root}/` }],
+    alias: [
+      // Mirror the "@/*" -> "./*" path alias from tsconfig.json.
+      { find: /^@\//, replacement: `${root}/` },
+      // Next.js aliases `server-only` to a no-op inside its own server
+      // bundler; outside that pipeline (i.e. here) it throws unconditionally,
+      // so stub it the same way Next effectively does.
+      { find: "server-only", replacement: `${root}/tests/stubs/server-only.ts` },
+    ],
   },
   test: {
     environment: "node",

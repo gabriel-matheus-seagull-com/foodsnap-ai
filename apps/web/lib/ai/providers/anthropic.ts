@@ -72,5 +72,29 @@ export function createAnthropicProvider(): VisionProvider {
 
       return text;
     },
+    async generateChatText({ systemPrompt, userInstruction }) {
+      const response = await client.messages.create({
+        model,
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userInstruction }],
+      });
+
+      if (response.stop_reason === "refusal") {
+        throw new Error("The AI declined to respond.");
+      }
+
+      const text = response.content
+        .filter((block): block is Anthropic.TextBlock => block.type === "text")
+        .map((block) => block.text)
+        .join("\n")
+        .trim();
+
+      if (!text) {
+        throw new Error("The AI returned an empty response.");
+      }
+
+      return text;
+    },
   };
 }

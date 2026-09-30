@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 import { AppHeader } from "@/components/foodsnap/app-header";
 import { Disclaimer } from "@/components/foodsnap/disclaimer";
+import { ThemeProvider } from "@/components/foodsnap/theme-provider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,21 +28,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans`}
-      >
-        <AppHeader />
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-border/70 py-8">
-          <div className="container flex flex-col gap-3">
-            <Disclaimer />
-            <p className="text-center text-xs text-muted-foreground">
-              FoodSnap AI · Built as an MVP demo
-            </p>
-          </div>
-        </footer>
-      </body>
-    </html>
+    <ClerkProvider afterSignOutUrl="/">
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans`}
+        >
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <AppHeader />
+            <main className="flex-1">{children}</main>
+            <footer className="border-t border-border/70 py-8">
+              <div className="container flex flex-col gap-3">
+                <Disclaimer />
+                <p className="text-center text-xs text-muted-foreground">
+                  FoodSnap AI · Built as an MVP demo
+                </p>
+              </div>
+            </footer>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

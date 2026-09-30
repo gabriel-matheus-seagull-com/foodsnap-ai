@@ -76,6 +76,19 @@ describe("resolveProvider — auto-detect", () => {
   });
 });
 
+describe("generateChatText — provider exposes a text-only method", () => {
+  it("both Anthropic and Gemini providers implement generateChatText alongside generateText", () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test";
+    const anthropic = resolveProvider();
+    expect(typeof anthropic?.generateChatText).toBe("function");
+
+    delete process.env.ANTHROPIC_API_KEY;
+    process.env.GEMINI_API_KEY = "g-test";
+    const gemini = resolveProvider();
+    expect(typeof gemini?.generateChatText).toBe("function");
+  });
+});
+
 describe("resolveProvider — explicit AI_PROVIDER", () => {
   it("forces Gemini even when an Anthropic key is also set", () => {
     process.env.AI_PROVIDER = "gemini";

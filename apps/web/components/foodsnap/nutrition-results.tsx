@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Flame, Pencil, RotateCcw } from "lucide-react";
+import { Bookmark, BookmarkCheck, Flame, Pencil, RotateCcw } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
 import { Disclaimer } from "@/components/foodsnap/disclaimer";
 import { ConfidenceBadge } from "@/components/foodsnap/confidence-badge";
 import { MacroSummary } from "@/components/foodsnap/macro-summary";
+import { saveAnalysisAction } from "@/app/analyze/actions";
 import { estimateNutrition, itemNutrition } from "@/lib/nutrition/estimate";
 import type { AnalysisResult, DetectedFood } from "@/lib/types";
 
@@ -30,6 +32,22 @@ export function NutritionResults({
   onStartOver: () => void;
 }) {
   const estimate = React.useMemo(() => estimateNutrition(items), [items]);
+  const { isSignedIn } = useUser();
+  const [saveState, setSaveState] = React.useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+
+  async function handleSave() {
+    setSaveState("saving");
+    const result = await saveAnalysisAction({
+      items,
+      overallConfidence: analysis.overallConfidence,
+      note: analysis.note,
+      source: analysis.source,
+      provider: analysis.provider,
+    });
+    setSaveState(result.ok ? "saved" : "error");
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -127,6 +145,33 @@ export function NutritionResults({
       )}
 
       <Disclaimer inline />
+
+      {isSignedIn && (
+        <div className="flex flex-col gap-1.5">
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={handleSave}
+            disabled={saveState === "saving" || saveState === "saved"}
+          >
+            {saveState === "saved" ? (
+              <BookmarkCheck className="h-4 w-4" />
+            ) : (
+              <Bookmark className="h-4 w-4" />
+            )}
+            {saveState === "saved"
+              ? "Saved"
+              : saveState === "saving"
+                ? "Saving…"
+                : "Save result"}
+          </Button>
+          {saveState === "error" && (
+            <p className="text-center text-xs text-destructive">
+              We couldn&apos;t save that result. Try again.
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="outline" size="lg" onClick={onEdit}>

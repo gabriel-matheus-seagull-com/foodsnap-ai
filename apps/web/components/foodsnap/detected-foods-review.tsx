@@ -22,6 +22,11 @@ export function DetectedFoodsReview({
   onConfirm,
   onRetake,
   previewUrl,
+  title = "Review your meal",
+  subtitle = "Tweak the foods and portions so the estimate matches what you ate.",
+  confirmLabel = "Confirm & see results",
+  retakeLabel = "Use a different photo",
+  confirmDisabled = false,
 }: {
   analysis: AnalysisResult;
   items: DetectedFood[];
@@ -29,6 +34,11 @@ export function DetectedFoodsReview({
   onConfirm: () => void;
   onRetake: () => void;
   previewUrl: string | null;
+  title?: string;
+  subtitle?: string;
+  confirmLabel?: string;
+  retakeLabel?: string;
+  confirmDisabled?: boolean;
 }) {
   const [presetIndex, setPresetIndex] = React.useState("");
 
@@ -54,10 +64,8 @@ export function DetectedFoodsReview({
   return (
     <div className="flex flex-col gap-5">
       <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Review your meal</h1>
-        <p className="text-sm text-muted-foreground">
-          Tweak the foods and portions so the estimate matches what you ate.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
       </div>
 
       {previewUrl && (
@@ -142,15 +150,15 @@ export function DetectedFoodsReview({
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button variant="outline" size="lg" onClick={onRetake}>
           <ArrowLeft className="h-4 w-4" />
-          Use a different photo
+          {retakeLabel}
         </Button>
         <Button
           className="flex-1"
           size="lg"
           onClick={onConfirm}
-          disabled={items.length === 0}
+          disabled={items.length === 0 || confirmDisabled}
         >
-          Confirm &amp; see results
+          {confirmLabel}
         </Button>
       </div>
     </div>

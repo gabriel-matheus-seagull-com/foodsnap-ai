@@ -26,6 +26,12 @@ export interface VisionRequest {
   userInstruction: string;
 }
 
+/** Everything a provider needs to make a single text-only request (no image). */
+export interface ChatRequest {
+  systemPrompt: string;
+  userInstruction: string;
+}
+
 export interface VisionProvider {
   /** Which backend this is, e.g. "anthropic" | "gemini". */
   readonly id: ProviderId;
@@ -37,4 +43,11 @@ export interface VisionProvider {
    * failure — never leaks credentials or raw provider internals.
    */
   generateText(request: VisionRequest): Promise<string>;
+  /**
+   * Send a text-only prompt (no image) and return its raw text output. Used
+   * by the AI Food Coach, which only ever sends a small aggregated JSON
+   * snapshot — never an image. Same error-handling contract as
+   * `generateText`.
+   */
+  generateChatText(request: ChatRequest): Promise<string>;
 }
